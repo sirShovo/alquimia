@@ -1,0 +1,2027 @@
+{
+  "info": {
+    "name": "Operation Alchemy API",
+    "description": "Requests and automated tests for every functional requirement (F1-F6) of the Operation Alchemy API.\n\nRun the whole collection in the Collection Runner: it starts by clearing the in-memory storage and every request depends on the previous ones.\n\nSample scenario: lab at (-100, 75), message \"savitar returns at the lab\".",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    }
+  ],
+  "item": [
+    {
+      "name": "00 - Setup (clear storage)",
+      "item": [
+        {
+          "name": "Reset star-labs",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Reading removed or not present', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/star-labs/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "star-labs",
+                "readings"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Reset ccpd",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Reading removed or not present', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/ccpd/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "ccpd",
+                "readings"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Reset star-satellite",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Reading removed or not present', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/star-satellite/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "star-satellite",
+                "readings"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "F1 - Full processing",
+      "description": "POST /api/interceptions with the information of the three devices at once. Nothing is stored.",
+      "item": [
+        {
+          "name": "Process the three devices",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('success is true', function () {",
+                  "    pm.expect(pm.response.json().success).to.eql(true);",
+                  "});",
+                  "pm.test('Lab located at (-100, 75)', function () {",
+                  "    const position = pm.response.json().data.position;",
+                  "    pm.expect(position.x).to.be.closeTo(-100, 0.01);",
+                  "    pm.expect(position.y).to.be.closeTo(75, 0.01);",
+                  "});",
+                  "pm.test('Message rebuilt', function () {",
+                  "    pm.expect(pm.response.json().data.message).to.eql('savitar returns at the lab');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/interceptions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "interceptions"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"devices\": [\n    {\n      \"name\": \"star-labs\",\n      \"distance\": 485.41,\n      \"message\": [\n        \"savitar\",\n        \"\",\n        \"\",\n        \"the\",\n        \"lab\"\n      ]\n    },\n    {\n      \"name\": \"ccpd\",\n      \"distance\": 265.75,\n      \"message\": [\n        \"\",\n        \"returns\",\n        \"\",\n        \"the\",\n        \"\"\n      ]\n    },\n    {\n      \"name\": \"star-satellite\",\n      \"distance\": 600.52,\n      \"message\": [\n        \"\",\n        \"\",\n        \"returns\",\n        \"at\",\n        \"\",\n        \"\"\n      ]\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Process using display names and any order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Lab located at (-100, 75)', function () {",
+                  "    const position = pm.response.json().data.position;",
+                  "    pm.expect(position.x).to.be.closeTo(-100, 0.01);",
+                  "    pm.expect(position.y).to.be.closeTo(75, 0.01);",
+                  "});",
+                  "pm.test('Message rebuilt', function () {",
+                  "    pm.expect(pm.response.json().data.message).to.eql('savitar returns at the lab');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/interceptions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "interceptions"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"devices\": [\n    {\n      \"name\": \"S.T.A.R. Satellite\",\n      \"distance\": 600.52,\n      \"message\": [\n        \"\",\n        \"\",\n        \"returns\",\n        \"at\",\n        \"\",\n        \"\"\n      ]\n    },\n    {\n      \"name\": \"CCPD\",\n      \"distance\": 265.75,\n      \"message\": [\n        \"\",\n        \"returns\",\n        \"\",\n        \"the\",\n        \"\"\n      ]\n    },\n    {\n      \"name\": \"STAR Labs\",\n      \"distance\": 485.41,\n      \"message\": [\n        \"savitar\",\n        \"\",\n        \"\",\n        \"the\",\n        \"lab\"\n      ]\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error - missing a device (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('success is false', function () {",
+                  "    pm.expect(pm.response.json().success).to.eql(false);",
+                  "});",
+                  "pm.test('Error message mentions \"star-satellite\"', function () {",
+                  "    pm.expect(pm.response.json().message).to.include('star-satellite');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/interceptions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "interceptions"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"devices\": [\n    {\n      \"name\": \"star-labs\",\n      \"distance\": 485.41,\n      \"message\": [\n        \"savitar\",\n        \"\",\n        \"\",\n        \"the\",\n        \"lab\"\n      ]\n    },\n    {\n      \"name\": \"ccpd\",\n      \"distance\": 265.75,\n      \"message\": [\n        \"\",\n        \"returns\",\n        \"\",\n        \"the\",\n        \"\"\n      ]\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error - duplicated device (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error message mentions \"more than once\"', function () {",
+                  "    pm.expect(pm.response.json().message).to.include('more than once');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/interceptions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "interceptions"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"devices\": [\n    {\n      \"name\": \"star-labs\",\n      \"distance\": 485.41,\n      \"message\": [\n        \"savitar\",\n        \"\",\n        \"\",\n        \"the\",\n        \"lab\"\n      ]\n    },\n    {\n      \"name\": \"ccpd\",\n      \"distance\": 265.75,\n      \"message\": [\n        \"\",\n        \"returns\",\n        \"\",\n        \"the\",\n        \"\"\n      ]\n    },\n    {\n      \"name\": \"ccpd\",\n      \"distance\": 265.75,\n      \"message\": [\n        \"\",\n        \"returns\",\n        \"\",\n        \"the\",\n        \"\"\n      ]\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error - unknown device (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test('Error message mentions \"Unknown surveillance device\"', function () {",
+                  "    pm.expect(pm.response.json().message).to.include('Unknown surveillance device');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/interceptions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "interceptions"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"devices\": [\n    {\n      \"name\": \"star-labs\",\n      \"distance\": 485.41,\n      \"message\": [\n        \"savitar\",\n        \"\",\n        \"\",\n        \"the\",\n        \"lab\"\n      ]\n    },\n    {\n      \"name\": \"ccpd\",\n      \"distance\": 265.75,\n      \"message\": [\n        \"\",\n        \"returns\",\n        \"\",\n        \"the\",\n        \"\"\n      ]\n    },\n    {\n      \"name\": \"kenobi\",\n      \"distance\": 600.52,\n      \"message\": [\n        \"\",\n        \"\",\n        \"returns\",\n        \"at\",\n        \"\",\n        \"\"\n      ]\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error - invalid fields (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error message mentions \"Validation failed\"', function () {",
+                  "    pm.expect(pm.response.json().message).to.include('Validation failed');",
+                  "});",
+                  "pm.test('Field errors are reported', function () {",
+                  "    pm.expect(pm.response.json().data).to.include.keys('devices[0].name', 'devices[0].distance', 'devices[0].message');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/interceptions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "interceptions"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"devices\": [\n    {\n      \"name\": \"\",\n      \"distance\": -10,\n      \"message\": null\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error - inconsistent distances (422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 422', function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "pm.test('Error message mentions \"location cannot be determined\"', function () {",
+                  "    pm.expect(pm.response.json().message).to.include('location cannot be determined');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/interceptions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "interceptions"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"devices\": [\n    {\n      \"name\": \"star-labs\",\n      \"distance\": 100,\n      \"message\": [\n        \"a\"\n      ]\n    },\n    {\n      \"name\": \"ccpd\",\n      \"distance\": 100,\n      \"message\": [\n        \"a\"\n      ]\n    },\n    {\n      \"name\": \"star-satellite\",\n      \"distance\": 100,\n      \"message\": [\n        \"a\"\n      ]\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error - message with a missing word (422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 422', function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "pm.test('Error message mentions \"was not received\"', function () {",
+                  "    pm.expect(pm.response.json().message).to.include('was not received');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/interceptions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "interceptions"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"devices\": [\n    {\n      \"name\": \"star-labs\",\n      \"distance\": 485.41,\n      \"message\": [\n        \"savitar\",\n        \"\",\n        \"at\"\n      ]\n    },\n    {\n      \"name\": \"ccpd\",\n      \"distance\": 265.75,\n      \"message\": [\n        \"savitar\",\n        \"\",\n        \"\"\n      ]\n    },\n    {\n      \"name\": \"star-satellite\",\n      \"distance\": 600.52,\n      \"message\": [\n        \"\",\n        \"\",\n        \"at\"\n      ]\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error - conflicting words (422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 422', function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "pm.test('Error message mentions \"conflicting words\"', function () {",
+                  "    pm.expect(pm.response.json().message).to.include('conflicting words');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/interceptions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "interceptions"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"devices\": [\n    {\n      \"name\": \"star-labs\",\n      \"distance\": 485.41,\n      \"message\": [\n        \"savitar\",\n        \"returns\"\n      ]\n    },\n    {\n      \"name\": \"ccpd\",\n      \"distance\": 265.75,\n      \"message\": [\n        \"alchemy\",\n        \"returns\"\n      ]\n    },\n    {\n      \"name\": \"star-satellite\",\n      \"distance\": 600.52,\n      \"message\": [\n        \"\",\n        \"returns\"\n      ]\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "F2 - Individual registration",
+      "description": "POST /api/devices/{deviceName}/readings. Readings can arrive in any order.",
+      "item": [
+        {
+          "name": "Register S.T.A.R. Satellite",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('success is true', function () {",
+                  "    pm.expect(pm.response.json().success).to.eql(true);",
+                  "});",
+                  "pm.test('data.device is \"star-satellite\"', function () {",
+                  "    pm.expect(pm.response.json().data.device).to.eql(\"star-satellite\");",
+                  "});",
+                  "pm.test('data.devicePosition is {\"x\":500,\"y\":100}', function () {",
+                  "    pm.expect(pm.response.json().data.devicePosition).to.eql({\"x\":500,\"y\":100});",
+                  "});",
+                  "pm.test('data.distance is 600.52', function () {",
+                  "    pm.expect(pm.response.json().data.distance).to.eql(600.52);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/star-satellite/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "star-satellite",
+                "readings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"distance\": 600.52,\n  \"message\": [\n    \"\",\n    \"\",\n    \"returns\",\n    \"at\",\n    \"\",\n    \"\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Register CCPD",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('data.device is \"ccpd\"', function () {",
+                  "    pm.expect(pm.response.json().data.device).to.eql(\"ccpd\");",
+                  "});",
+                  "pm.test('data.message is [\"\",\"returns\",\"\",\"the\",\"\"]', function () {",
+                  "    pm.expect(pm.response.json().data.message).to.eql([\"\",\"returns\",\"\",\"the\",\"\"]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/ccpd/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "ccpd",
+                "readings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"distance\": 265.75,\n  \"message\": [\n    \"\",\n    \"returns\",\n    \"\",\n    \"the\",\n    \"\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error - device already registered (409)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 409', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "pm.test('Error message mentions \"already has a registered reading\"', function () {",
+                  "    pm.expect(pm.response.json().message).to.include('already has a registered reading');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/ccpd/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "ccpd",
+                "readings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"distance\": 265.75,\n  \"message\": [\n    \"\",\n    \"returns\",\n    \"\",\n    \"the\",\n    \"\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error - unknown device (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test('Error message mentions \"Unknown surveillance device\"', function () {",
+                  "    pm.expect(pm.response.json().message).to.include('Unknown surveillance device');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/kenobi/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "kenobi",
+                "readings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"distance\": 265.75,\n  \"message\": [\n    \"\",\n    \"returns\",\n    \"\",\n    \"the\",\n    \"\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error - missing distance (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('distance error reported', function () {",
+                  "    pm.expect(pm.response.json().data).to.have.property('distance');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/star-labs/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "star-labs",
+                "readings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": [\n    \"a\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error - null word in message (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/star-labs/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "star-labs",
+                "readings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"distance\": 485.41,\n  \"message\": [\"savitar\", null]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "F3 - Query and accumulated processing",
+      "description": "GET /api/devices/readings, GET /api/devices/{deviceName}/readings and GET /api/interceptions/accumulated.",
+      "item": [
+        {
+          "name": "List registered readings",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Two readings registered', function () {",
+                  "    pm.expect(pm.response.json().data).to.have.lengthOf(2);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "readings"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get CCPD reading",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('data.distance is 265.75', function () {",
+                  "    pm.expect(pm.response.json().data.distance).to.eql(265.75);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/ccpd/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "ccpd",
+                "readings"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Error - get unregistered device (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test('Error message mentions \"No reading registered\"', function () {",
+                  "    pm.expect(pm.response.json().message).to.include('No reading registered');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/star-labs/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "star-labs",
+                "readings"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Accumulated - insufficient data (422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 422', function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "pm.test('success is false', function () {",
+                  "    pm.expect(pm.response.json().success).to.eql(false);",
+                  "});",
+                  "pm.test('Error message mentions \"Not enough information\"', function () {",
+                  "    pm.expect(pm.response.json().message).to.include('Not enough information');",
+                  "});",
+                  "pm.test('Missing devices: star-labs', function () {",
+                  "    pm.expect(pm.response.json().data.missingDevices).to.have.members([\"star-labs\"]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/interceptions/accumulated",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "interceptions",
+                "accumulated"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Register STAR Labs (completes the data)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('data.device is \"star-labs\"', function () {",
+                  "    pm.expect(pm.response.json().data.device).to.eql(\"star-labs\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/STAR%20Labs/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "STAR%20Labs",
+                "readings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"distance\": 485.41,\n  \"message\": [\n    \"savitar\",\n    \"\",\n    \"\",\n    \"the\",\n    \"lab\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Accumulated - location and message",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('success is true', function () {",
+                  "    pm.expect(pm.response.json().success).to.eql(true);",
+                  "});",
+                  "pm.test('Lab located at (-100, 75)', function () {",
+                  "    const position = pm.response.json().data.position;",
+                  "    pm.expect(position.x).to.be.closeTo(-100, 0.01);",
+                  "    pm.expect(position.y).to.be.closeTo(75, 0.01);",
+                  "});",
+                  "pm.test('Message rebuilt', function () {",
+                  "    pm.expect(pm.response.json().data.message).to.eql('savitar returns at the lab');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/interceptions/accumulated",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "interceptions",
+                "accumulated"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "F4 - Full replacement",
+      "description": "PUT /api/devices/{deviceName}/readings. Distance and full message are required.",
+      "item": [
+        {
+          "name": "Replace CCPD reading",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('data.distance is 300', function () {",
+                  "    pm.expect(pm.response.json().data.distance).to.eql(300);",
+                  "});",
+                  "pm.test('data.message is [\"new\",\"fragment\"]', function () {",
+                  "    pm.expect(pm.response.json().data.message).to.eql([\"new\",\"fragment\"]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/ccpd/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "ccpd",
+                "readings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"distance\": 300,\n  \"message\": [\n    \"new\",\n    \"fragment\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Other devices are not affected",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('data.distance is 485.41', function () {",
+                  "    pm.expect(pm.response.json().data.distance).to.eql(485.41);",
+                  "});",
+                  "pm.test('data.message is [\"savitar\",\"\",\"\",\"the\",\"lab\"]', function () {",
+                  "    pm.expect(pm.response.json().data.message).to.eql([\"savitar\",\"\",\"\",\"the\",\"lab\"]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/star-labs/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "star-labs",
+                "readings"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Error - missing message (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('message error reported', function () {",
+                  "    pm.expect(pm.response.json().data).to.have.property('message');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/ccpd/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "ccpd",
+                "readings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"distance\": 300\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Restore CCPD reading",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('data.distance is 265.75', function () {",
+                  "    pm.expect(pm.response.json().data.distance).to.eql(265.75);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/ccpd/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "ccpd",
+                "readings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"distance\": 265.75,\n  \"message\": [\n    \"\",\n    \"returns\",\n    \"\",\n    \"the\",\n    \"\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Accumulated still resolves",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Lab located at (-100, 75)', function () {",
+                  "    const position = pm.response.json().data.position;",
+                  "    pm.expect(position.x).to.be.closeTo(-100, 0.01);",
+                  "    pm.expect(position.y).to.be.closeTo(75, 0.01);",
+                  "});",
+                  "pm.test('Message rebuilt', function () {",
+                  "    pm.expect(pm.response.json().data.message).to.eql('savitar returns at the lab');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/interceptions/accumulated",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "interceptions",
+                "accumulated"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "F5 - Partial update",
+      "description": "PATCH /api/devices/{deviceName}/readings. Omitted fields keep their previous value.",
+      "item": [
+        {
+          "name": "Update only the distance",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('data.distance is 700', function () {",
+                  "    pm.expect(pm.response.json().data.distance).to.eql(700);",
+                  "});",
+                  "pm.test('data.message is [\"\",\"\",\"returns\",\"at\",\"\",\"\"]', function () {",
+                  "    pm.expect(pm.response.json().data.message).to.eql([\"\",\"\",\"returns\",\"at\",\"\",\"\"]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/star-satellite/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "star-satellite",
+                "readings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"distance\": 700\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Update only the message",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('data.distance is 700', function () {",
+                  "    pm.expect(pm.response.json().data.distance).to.eql(700);",
+                  "});",
+                  "pm.test('data.message is [\"\",\"returns\",\"at\",\"\",\"\"]', function () {",
+                  "    pm.expect(pm.response.json().data.message).to.eql([\"\",\"returns\",\"at\",\"\",\"\"]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/star-satellite/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "star-satellite",
+                "readings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": [\n    \"\",\n    \"returns\",\n    \"at\",\n    \"\",\n    \"\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Accumulated - inconsistent distance (422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 422', function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "pm.test('Error message mentions \"location cannot be determined\"', function () {",
+                  "    pm.expect(pm.response.json().message).to.include('location cannot be determined');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/interceptions/accumulated",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "interceptions",
+                "accumulated"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update both fields (restore)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('data.distance is 600.52', function () {",
+                  "    pm.expect(pm.response.json().data.distance).to.eql(600.52);",
+                  "});",
+                  "pm.test('data.message is [\"\",\"\",\"returns\",\"at\",\"\",\"\"]', function () {",
+                  "    pm.expect(pm.response.json().data.message).to.eql([\"\",\"\",\"returns\",\"at\",\"\",\"\"]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/star-satellite/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "star-satellite",
+                "readings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"distance\": 600.52,\n  \"message\": [\n    \"\",\n    \"\",\n    \"returns\",\n    \"at\",\n    \"\",\n    \"\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error - empty body (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error message mentions \"At least one field\"', function () {",
+                  "    pm.expect(pm.response.json().message).to.include('At least one field');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/star-satellite/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "star-satellite",
+                "readings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error - negative distance (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/star-satellite/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "star-satellite",
+                "readings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"distance\": -1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Accumulated resolves again",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Lab located at (-100, 75)', function () {",
+                  "    const position = pm.response.json().data.position;",
+                  "    pm.expect(position.x).to.be.closeTo(-100, 0.01);",
+                  "    pm.expect(position.y).to.be.closeTo(75, 0.01);",
+                  "});",
+                  "pm.test('Message rebuilt', function () {",
+                  "    pm.expect(pm.response.json().data.message).to.eql('savitar returns at the lab');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/interceptions/accumulated",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "interceptions",
+                "accumulated"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "F6 - Deletion",
+      "description": "DELETE /api/devices/{deviceName}/readings. Only the selected device is removed.",
+      "item": [
+        {
+          "name": "Delete STAR Labs reading",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('success is true', function () {",
+                  "    pm.expect(pm.response.json().success).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/star-labs/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "star-labs",
+                "readings"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Error - delete again (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/star-labs/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "star-labs",
+                "readings"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Other devices are kept",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Only CCPD and satellite remain', function () {",
+                  "    const devices = pm.response.json().data.map(r => r.device);",
+                  "    pm.expect(devices).to.eql(['ccpd', 'star-satellite']);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "readings"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Accumulated - insufficient data again (422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 422', function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "pm.test('Missing devices: star-labs', function () {",
+                  "    pm.expect(pm.response.json().data.missingDevices).to.have.members([\"star-labs\"]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/interceptions/accumulated",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "interceptions",
+                "accumulated"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Error - patch deleted device (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/star-labs/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "star-labs",
+                "readings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"distance\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Error cases - general",
+      "item": [
+        {
+          "name": "Malformed JSON (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error message mentions \"Malformed request body\"', function () {",
+                  "    pm.expect(pm.response.json().message).to.include('Malformed request body');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/star-labs/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "star-labs",
+                "readings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"distance\": 1, ",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Wrong data type (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/star-labs/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "star-labs",
+                "readings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"distance\": \"far\",\n  \"message\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Unknown device in path (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/flash/readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "flash",
+                "readings"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Method not allowed (405)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 405', function () {",
+                  "    pm.response.to.have.status(405);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/interceptions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "interceptions"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
